@@ -114,16 +114,10 @@ def EkstraksiFitur(S1,Systole,S2,Diastole):
 label_train = [0,0,1,0,1,1,0,1,0,0,0,1,0,1,0,0,1,1,1,1]
 sample_rate = 200
 
-# datamitral = open("C:/xampp/htdocs/projectCAD/public/storage/upload/files/datasignal.txt").readlines()
-#
-# data = []
-# for i in range(len(datamitral)) :
-#     temp = float(datamitral[i])
-#     data.append(temp)
 
 data = []
-# xdata,filename = readData()
-xdata = open("D:\KULIAH\TINGKAT4\TA2\dataset\DATA RS SALAMUN\subjek1_N.txt").readlines()
+xdata,filename = readData()
+# xdata = open("D:\KULIAH\TINGKAT4\TA2\dataset\DATA RS SALAMUN\subjek1_N.txt").readlines()
 for i in range(len(xdata)):
     temp = float(xdata[i])
     data.append(temp)
@@ -141,59 +135,38 @@ data_Systole = createData(Systole)
 data_S2 = createData(S2)
 data_Diastole = createData(Diastole)
 
-siklus_jantung = data_Systole[0]
-# print(data_Systole)
-# with open('sinyal Systole.txt', 'w') as f:
-#     for item in data_Systole:
-#         f.write("%s\n" % item)
-# with open('sinyal S2.txt', 'w') as f:
-#     for item in data_S2:
-#         f.write("%s\n" % item)
-# with open('sinyal Diastole.txt', 'w') as f:
-#     for item in data_Diastole:
-#         f.write("%s\n" % item)
-# print("done")
+print("Ekstraksi Fitur")
+# Feature Extraction
+all_features_test = []
+features = EkstraksiFitur(data_S1,data_Systole,data_S2,data_Diastole)
+all_features_test.append(features)
+# print(all_features_test)
 
-# print(siklus_jantung)
+with open("all_feature_Energy_Entropy_TimeDomain.txt", "rb") as new_filename:
+    xfeatures = pickle.load(new_filename)
+all_features_train = xfeatures
 
-plt.plot(siklus_jantung[:265])
-plt.xlabel("Time(m/s)")
-plt.ylabel("Amplitudo(A)")
-plt.show()
+print("Klasifikasi")
+#Klasifikasi
+from sklearn.naive_bayes import GaussianNB
+data_train_NB = np.array(all_features_train)
+label_train_NB = np.array(label_train)
+acc_NB_Gaussian = []
+rata2_sens = []
+rata2_spec = []
+data_test_NB = np.array(all_features_test)
+label_test_NB = [0]
 
+X_train, X_test, y_train, y_test = data_train_NB, data_test_NB, label_train_NB,label_test_NB
 
-# print("Ekstraksi Fitur")
-# # Feature Extraction
-# all_features_test = []
-# features = EkstraksiFitur(data_S1,data_Systole,data_S2,data_Diastole)
-# all_features_test.append(features)
-# # print(all_features_test)
-#
-# with open("all_feature_Energy_Entropy_TimeDomain.txt", "rb") as new_filename:
-#     xfeatures = pickle.load(new_filename)
-# all_features_train = xfeatures
-#
-# print("Klasifikasi")
-# #Klasifikasi
-# from sklearn.naive_bayes import GaussianNB
-# data_train_NB = np.array(all_features_train)
-# label_train_NB = np.array(label_train)
-# acc_NB_Gaussian = []
-# rata2_sens = []
-# rata2_spec = []
-# data_test_NB = np.array(all_features_test)
-# label_test_NB = [0]
-#
-# X_train, X_test, y_train, y_test = data_train_NB, data_test_NB, label_train_NB,label_test_NB
-#
-# classifier = GaussianNB()
-# classifier.fit(X_train, y_train)
-# predict = classifier.predict(X_test)
-# print()
-#
-# if (predict == 0):
-#     print("Subyek Sehat")
-# else:
-#     print("Subyek Sakit")
-#
-# saveData(denois_data,predict,filename)
+classifier = GaussianNB()
+classifier.fit(X_train, y_train)
+predict = classifier.predict(X_test)
+print()
+
+if (predict == 0):
+    print("Subyek Sehat")
+else:
+    print("Subyek Sakit")
+
+saveData(denois_data,predict,filename)
